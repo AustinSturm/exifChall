@@ -22,8 +22,9 @@ def register(request):
             form.save()
             username = form.cleaned_data.get('username')
             raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=raw_password)
-            login(user)
+            # need to get this to auth and redirect
+            #user = authenticate(username=username, password=raw_password)
+            #login(user)
             return redirect('index')
     else:
         form = UserCreationForm()
@@ -50,6 +51,20 @@ def upload(request):
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
+@login_required
+@csrf_exempt
+def upload2(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload = form.save(commit=False)
+            upload.user = request.user
+            upload.save()
+        return redirect('/img/{0}/{1}'.format(str(request.user.id), request.FILES.get("myfile")._get_name()))
+    else:
+        form = UploadFileForm()
+    return render(request, 'upload.html', {'form': form})
+
 # cud add flag here for stego
 def file_handle(request):
     try:
@@ -63,6 +78,8 @@ def file_handle(request):
 
 def imageView(request, **kwargs):
     form = None
+    tags = "Looks like you made a mistake"
+    filename = ""
     filename = kwargs.get('filename')
     try:
         with open('front/media/'+filename, 'rb') as f:
