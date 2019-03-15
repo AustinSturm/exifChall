@@ -1,4 +1,5 @@
 from django import forms
+from front import models
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 """"
@@ -20,6 +21,8 @@ class RegistrationForm(UserCreationForm):
 
 		return user
 
-class UploadFileForm(forms.Form):
-    title = forms.CharField(max_length=50)
-    file = forms.FileField()
+class UploadFileForm(forms.ModelForm):
+    class Meta:
+        model = models.images
+        fields = {'ifile'}
+    ifile = forms.ImageField()

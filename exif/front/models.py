@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 def upld_dir(instance, filename):
-    return 'media/user-{0}/{1}'.format(instance.user.id, filename)
+    return 'user-{0}/{1}'.format(instance.user.id, filename)
 
 class images(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

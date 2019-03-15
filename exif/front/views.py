@@ -55,22 +55,25 @@ def upload(request):
 @csrf_exempt
 def upload2(request):
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            upload = form.save(commit=False)
+        print("form is psot")
+        frm = UploadFileForm(request.POST, request.FILES)
+        if frm.is_valid():
+            print("form is valid")
+            upload = frm.save(commit=False)
             upload.user = request.user
             upload.save()
-        return redirect('/img/{0}/{1}'.format(str(request.user.id), request.FILES.get("myfile")._get_name()))
+            return redirect('/img/{0}/{1}'.format("user-"+str(request.user.id), request.FILES.get("ifile")._get_name()))
     else:
+        print("form is not psot")
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
 # cud add flag here for stego
 def file_handle(request):
     try:
-        path = 'front/media/'+str(request.user.id) + "/"+request.FILES.get("myfile")._get_name()
+        path = 'front/media/'+str(request.user.id) + "/"+request.FILES.get("ifile")._get_name()
         with open(path,'wb+') as dest:
-            for chunk in request.FILES.get("myfile").chunks():
+            for chunk in request.FILES.get("file").chunks():
                 dest.write(chunk)
     except Exception as e:
         print(e)
@@ -82,7 +85,7 @@ def imageView(request, **kwargs):
     filename = ""
     filename = kwargs.get('filename')
     try:
-        with open('front/media/'+filename, 'rb') as f:
+        with open('front/media/'+'user-'+str(request.user.id)+"/"+filename, 'rb') as f:
             tags = exifread.process_file(f, details=False)
         if not tags:
             tags = {"":"There is no exif data"}
