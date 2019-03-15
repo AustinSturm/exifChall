@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+   <b>{{ filename }}</b>
+   <br />
+   <img src="/media/{{filename}}"></img>
+   {% autoescape off %}
+   {% if tags %}
+     {% for tag, value in tags.items %}
+      <p>{{ tag }} :  {{ value }}</p>
+     {% endfor %}
+   {% endif %}
+   {% endautoescape %}
+{% endblock %}

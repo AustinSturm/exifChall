@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+Upload a file, a moderator will review your upload soon after for unauthenticated users.
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="myfile">
+    <button type="submit">Upload</button>
+  </form>
+{% endblock %}
