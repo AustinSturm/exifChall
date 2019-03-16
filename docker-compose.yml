@@ -3,10 +3,17 @@ version: '3.7'
 services:
   web:
     build: .
-    command: python /usr/src/exif/manage.py runserver 0.0.0.0:8000
+    command: gunicorn exif.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./exif/:/usr/src/exif/
-    ports:
-      - 8000:8000
+    expose:
+      - 8000
     environment:
       - SECRET_KEY=please_change_me
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - web

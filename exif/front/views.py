@@ -30,6 +30,7 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
+@login_required
 def signout(request):
     logout(request)
     return redirect("/")
@@ -100,12 +101,14 @@ def validateToken(request, template, flag):
 
     return render(request, template, {'output': "Not Logged In"})
 
+@login_required
 def admin(request, **kwargs):
     # check if token could exist (if not say not authed)
     token = request.COOKIES.get('jwtsess')
 
     return validateToken(request, 'adminFlag.html', 'BCTF{test}')
 
+@login_required
 def profile(request, **kwargs):
     # check if token could exist (if not say not authed)
     token = request.COOKIES.get('jwtsess')
