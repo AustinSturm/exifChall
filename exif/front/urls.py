@@ -13,7 +13,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('upload', views.upload2, name='upload'),
+    path('upload', views.upload, name='upload'),
     path('img/<str:user>/<str:filename>', views.imageView),
     path('login', auth_views.LoginView.as_view(), name='login'),
     path('logout', views.signout, name='logout'),

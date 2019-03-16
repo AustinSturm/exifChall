@@ -3,7 +3,7 @@
 {% block content %}
    <b>{{ filename }}</b>
    <br />
-   <img src="/media/{{filename}}"></img>
+   <img src="/{{filepath}}"></img>
    {% autoescape off %}
    {% if tags %}
      {% for tag, value in tags.items %}

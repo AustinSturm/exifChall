@@ -36,35 +36,19 @@ def signout(request):
 
 # Create your views here.
 def index(request):
-    print(request.user)
     return render(request, 'base.html')
 
 @login_required
 @csrf_exempt
 def upload(request):
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        print(request.FILES)
-        file_handle(request)
-        return redirect('/img/' + request.FILES.get("myfile")._get_name())
-    else:
-        form = UploadFileForm()
-    return render(request, 'upload.html', {'form': form})
-
-@login_required
-@csrf_exempt
-def upload2(request):
-    if request.method == 'POST':
-        print("form is psot")
         frm = UploadFileForm(request.POST, request.FILES)
         if frm.is_valid():
-            print("form is valid")
             upload = frm.save(commit=False)
             upload.user = request.user
             upload.save()
             return redirect('/img/{0}/{1}'.format("user-"+str(request.user.id), request.FILES.get("ifile")._get_name()))
     else:
-        print("form is not psot")
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
@@ -91,7 +75,7 @@ def imageView(request, **kwargs):
             tags = {"":"There is no exif data"}
     except Exception as e:
         print(e)
-    return render(request, 'image.html', {'tags' : tags, 'filename':filename})
+    return render(request, 'image.html', {'tags' : tags, 'filepath':'media/'+'user-'+str(request.user.id)+"/"+filename})
 
 
 def validateToken(request, template, flag):
