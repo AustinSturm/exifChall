@@ -15,6 +15,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('upload', views.upload, name='upload'),
     path('img/<str:user>/<str:filename>', views.imageView),
+    path('image/<str:filename>',views.document_view),
     path('login', auth_views.LoginView.as_view(), name='login'),
     path('logout', views.signout, name='logout'),
     path('register', views.register, name='register'),

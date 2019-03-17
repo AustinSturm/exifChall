@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 import exifread
 import uuid
+from .models import images
 
 from jose import jwt
 import json
@@ -47,6 +48,7 @@ def upload(request):
         if frm.is_valid():
             upload = frm.save(commit=False)
             upload.user = request.user
+            upload.filename = request.FILES.get("ifile")._get_name()
             upload.save()
             return redirect('/img/{0}/{1}'.format("user-"+str(request.user.id), request.FILES.get("ifile")._get_name()))
     else:
@@ -77,6 +79,15 @@ def imageView(request, **kwargs):
     except Exception as e:
         print(e)
     return render(request, 'image.html', {'tags' : tags, 'filepath':'media/'+'user-'+str(request.user.id)+"/"+filename})
+
+
+@login_required
+def document_view(request, filename):
+    document = images.objects.get(filename=filename)
+    response = HttpResponse()
+    response["Content-Disposition"] = "attachment; filename={0}".format(document.filename)
+    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(request.user.id),document.filename)
+    return response
 
 
 def validateToken(request, template, flag):

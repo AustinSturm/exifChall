@@ -7,5 +7,6 @@ def upld_dir(instance, filename):
 
 class images(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    filename = models.CharField(default="image", max_length=60, blank=False)
     ifile = models.ImageField(upload_to=upld_dir)
     rating = models.IntegerField(default = 0, validators=[MaxValueValidator(5), MinValueValidator(0)])
