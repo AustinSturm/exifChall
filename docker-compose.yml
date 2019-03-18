@@ -1,16 +1,28 @@
 version: '3.7'
 
 services:
+  db:
+    image: postgres:10.1-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
   web:
     build: .
     command: gunicorn exif.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./exif/:/usr/src/exif/
-      - ./exif/media/:/usr/src/exif/media
+      - media_data:/usr/src/exif/media
     expose:
       - 8000
     environment:
       - SECRET_KEY=please_change_me
+      - DATABASE=postgres
+      - SQL_HOST=db
+      - SQL_PORT=5432
+      - DEFAULT_USER=pontifex
+      - DEFAULT_PASSWORD=apexlegends?
+    depends_on:
+      - db
 
   nginx:
     build: ./nginx
@@ -20,4 +32,8 @@ services:
       - web
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
-      - ./exif/media/:/usr/src/exif/media
+      - media_data:/usr/src/exif/media
+
+volumes:
+  postgres_data:
+  media_data:
