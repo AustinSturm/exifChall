@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 import exifread
 import uuid
 from .models import images
+from exif.settings import MEDIA_ROOT
 
 from jose import jwt
 import json
@@ -15,6 +16,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
 from django.contrib.auth import logout
+
+def imagePath():
+    return ""
+
 
 def register(request):
     if request.method == 'POST':
@@ -50,43 +55,34 @@ def upload(request):
             upload.user = request.user
             upload.filename = request.FILES.get("ifile")._get_name()
             upload.save()
-            return redirect('/img/{0}/{1}'.format("user-"+str(request.user.id), request.FILES.get("ifile")._get_name()))
+            return redirect('/exif/{0}'.format(upload.get_upldName()))
     else:
         form = UploadFileForm()
     return render(request, 'upload.html', {'form': form})
 
-# cud add flag here for stego
-def file_handle(request):
-    try:
-        path = 'front/media/'+str(request.user.id) + "/"+request.FILES.get("ifile")._get_name()
-        with open(path,'wb+') as dest:
-            for chunk in request.FILES.get("file").chunks():
-                dest.write(chunk)
-    except Exception as e:
-        print(e)
-
-
+@login_required
 def imageView(request, **kwargs):
     form = None
     tags = "Looks like you made a mistake"
     filename = ""
     filename = kwargs.get('filename')
     try:
-        with open('front/media/'+'user-'+str(request.user.id)+"/"+filename, 'rb') as f:
+        with open(images.objects.get(user=request.user, ifile__endswith=filename).ifile.path, 'rb') as f:
             tags = exifread.process_file(f, details=False)
         if not tags:
             tags = {"":"There is no exif data"}
     except Exception as e:
         print(e)
-    return render(request, 'image.html', {'tags' : tags, 'filepath':'media/'+'user-'+str(request.user.id)+"/"+filename})
+    # send url to document_view function with filename
+    return render(request, 'image.html', {'tags' : tags, 'filepath':'media/'+filename})
 
-
+# media/filename endpoint. Redirects to nginx served files.
 @login_required
 def document_view(request, filename):
-    document = images.objects.get(filename=filename)
+    document = images.objects.get(user=request.user, ifile__endswith=filename)
     response = HttpResponse()
     response["Content-Disposition"] = "attachment; filename={0}".format(document.filename)
-    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(request.user.id),document.filename)
+    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(request.user.id),document.get_upldName())
     return response
 
 
@@ -121,7 +117,6 @@ def admin(request, **kwargs):
 
 @login_required
 def profile(request, **kwargs):
-    # check if token could exist (if not say not authed)
-    token = request.COOKIES.get('jwtsess')
+    uploads = images.objects.filter(user=request.user)
 
-    return validateToken(request, 'profile.html', 'BCTF{test2}')
+    return render(request, 'profile.html', {'uploads': uploads})

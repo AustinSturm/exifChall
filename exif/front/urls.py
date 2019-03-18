@@ -14,18 +14,11 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('', views.index, name='index'),
     path('upload', views.upload, name='upload'),
-    path('img/<str:user>/<str:filename>', views.imageView),
-    path('image/<str:filename>',views.document_view),
+    path('exif/<str:filename>', views.imageView),
+    path('media/<str:filename>',views.document_view),
     path('login', auth_views.LoginView.as_view(), name='login'),
     path('logout', views.signout, name='logout'),
     path('register', views.register, name='register'),
     path('admin', views.admin, name='admin'),
     path('profile', views.profile, name='profile'),
 ]
-
-if settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
