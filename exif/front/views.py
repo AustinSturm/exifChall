@@ -11,14 +11,23 @@ from exif.settings import MEDIA_ROOT
 from jose import jwt
 import json
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate
 from django.contrib.auth import logout
 
-def imagePath():
-    return ""
+# checks to see if it is the bot - returns false if bot
+def is_victim(user):
+    print(user)
+    print(user.id)
+    if user.id == 1:
+        return True
+    return False
+
+def notvictim(user):
+    return not(is_victim(user))
+
 
 
 def register(request):
@@ -46,12 +55,11 @@ def index(request):
     return render(request, 'base.html')
 
 @login_required
-@csrf_exempt
 def upload(request):
     if request.method == 'POST':
-        frm = UploadFileForm(request.POST, request.FILES)
-        if frm.is_valid():
-            upload = frm.save(commit=False)
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            upload = form.save(commit=False)
             upload.user = request.user
             upload.filename = request.FILES.get("ifile")._get_name()
             upload.save()
@@ -67,23 +75,60 @@ def imageView(request, **kwargs):
     filename = ""
     filename = kwargs.get('filename')
     try:
-        with open(images.objects.get(user=request.user, ifile__endswith=filename).ifile.path, 'rb') as f:
+    # if user_id was not provided get logged in user
+        user = request.user.id
+        obj = images.objects.get(user=user, ifile__endswith=filename)
+        with open(obj.ifile.path, 'rb') as f:
             tags = exifread.process_file(f, details=False)
         if not tags:
             tags = {"":"There is no exif data"}
     except Exception as e:
         print(e)
     # send url to document_view function with filename
-    return render(request, 'image.html', {'tags' : tags, 'filepath':'media/'+filename})
+    filepath = 'media/'+filename
+    return render(request, 'image.html', {'tags' : tags, 'filepath':filepath, 'filenm':obj.filename})
 
 # media/filename endpoint. Redirects to nginx served files.
 @login_required
 def document_view(request, filename):
-    document = images.objects.get(user=request.user, ifile__endswith=filename)
+    user = request.user
+    document = images.objects.get(user=user, ifile__endswith=filename)
     response = HttpResponse()
-    response["Content-Disposition"] = "attachment; filename={0}".format(document.filename)
-    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(request.user.id),document.get_upldName())
+    response["Content-Disposition"] = "inline"
+    response["Content-Type"] = "image/jpeg"
+    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(user.id),document.get_upldName())
     return response
+
+
+@user_passes_test(is_victim)
+def vic_imageView(request, **kwargs):
+    form = None
+    userid= kwargs.get('userid')
+    filename = kwargs.get('filename')
+    try:
+    # if user_id was not provided get logged in user
+        obj = images.objects.get(user=userid, ifile__endswith=filename)
+        with open(obj.ifile.path, 'rb') as f:
+            tags = exifread.process_file(f, details=False)
+        if not tags:
+            tags = {"":"There is no exif data"}
+    except Exception as e:
+        print(e)
+    # send url to document_view function with filename
+    filepath = 'bot/media/{0}/{1}'.format(userid, filename)
+    return render(request, 'image.html', {'tags' : tags, 'filepath':filepath, 'filenm':obj.filename})
+
+@user_passes_test(is_victim)
+def vic_document_view(request, **kwargs):
+    userid = kwargs.get('userid')
+    filename = kwargs.get('filename')
+    document = images.objects.get(user=userid, ifile__endswith=filename)
+    response = HttpResponse()
+    response["Content-Disposition"] = "inline"
+    response["Content-Type"] = "image/jpeg"
+    response['X-Accel-Redirect'] = "/protected/user-{0}/{1}".format(str(userid),document.get_upldName())
+    return response
+
 
 
 def validateToken(request, template, flag):

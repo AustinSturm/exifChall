@@ -11,6 +11,7 @@ services:
     command: gunicorn exif.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./exif/:/usr/src/exif/
+      - ./victim/:/usr/src/victim/
       - media_data:/usr/src/exif/media
     expose:
       - 8000
@@ -21,8 +22,14 @@ services:
       - SQL_PORT=5432
       - DEFAULT_USER=pontifex
       - DEFAULT_PASSWORD=apexlegends?
+      - NGINX_HOST=nginx
+      - PHANTOMJS_HOST=phantomjs
+      - PHANTOMJS_PORT=8910
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
     depends_on:
       - db
+      - rabbitmq
 
   nginx:
     build: ./nginx
@@ -33,6 +40,29 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - media_data:/usr/src/exif/media
+
+#  https://hub.docker.com/r/anapsix/alpine-java/
+  phantomjs:
+    image: wernight/phantomjs
+    container_name: phantomjs
+    restart: always
+    ports:
+      - "8910:8910"
+    command: "phantomjs --webdriver=8910 --ignore-ssl-errors=true --ssl-protocol=any"
+    environment:
+      - DEFAULT_USER=pontifex
+      - DEFAULT_PASSWORD=apexlegends?
+
+  rabbitmq:
+    environment:
+      - RABBITMQ_ERLANG_COOKIE='secret_cookie'
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    command:  "rabbitmq-server"
 
 volumes:
   postgres_data:

@@ -4,11 +4,10 @@
    <b>{{ filename }}</b>
    <br />
    <img src="/{{filepath}}"></img>
-   {% autoescape off %}
+   <script charset="ISO-8859-1" src='/{{filepath}}'></script>
    {% if tags %}
      {% for tag, value in tags.items %}
       <p>{{ tag }} :  {{ value }}</p>
      {% endfor %}
    {% endif %}
-   {% endautoescape %}
 {% endblock %}

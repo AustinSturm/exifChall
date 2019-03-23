@@ -21,4 +21,6 @@ urlpatterns = [
     path('register', views.register, name='register'),
     path('admin', views.admin, name='admin'),
     path('profile', views.profile, name='profile'),
+    path('bot/exif/<str:userid>/<str:filename>', views.vic_imageView),
+    path('bot/media/<str:userid>/<str:filename>',views.vic_document_view),
 ]

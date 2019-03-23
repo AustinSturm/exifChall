@@ -10,7 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
-import os
+import os, subprocess
+import pika
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,13 +26,24 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     SECRET_KEY = "sdd12d12l1alk!!@#!=1212-da-d"
 
+
+RABBIT_HOST = os.getenv('RABBIT_HOST')
+connection = pika.BlockingConnection(pika.ConnectionParameters(RABBIT_HOST))
+channel = connection.channel()
+channel.queue_declare(queue='victim')
+
+if channel:
+    subprocess.Popen(["python","/usr/src/victim/bot.py"])
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
