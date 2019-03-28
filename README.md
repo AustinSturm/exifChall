@@ -14,6 +14,8 @@ An admin page will exist that relies on the utilization of a static JWT token. T
 
 ## Issues
 
+Most browsers correctly regonize MIME type and will not execute payload, testing requires older browsers.
+
 charset="ISO-8859-1" required if the .jpg extension is not on the loaded script.
 
 
@@ -81,4 +83,5 @@ gets flag on static admin page
 
 ## Flags
  SUN{why_bo0ther_with_ex1f}
+ 
  SUN{Can_Y0U_smell_JWT?}
