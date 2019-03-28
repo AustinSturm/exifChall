@@ -6,10 +6,12 @@ from django.views.decorators.csrf import csrf_exempt
 import exifread
 import uuid
 from .models import images
-from exif.settings import MEDIA_ROOT
+from exif.settings import MEDIA_ROOT, APPROVED_SIGNER
 
-from jose import jwt
+import jwt
 import json
+from requests import get as req_get
+from base64 import b64encode, b64decode
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
@@ -19,15 +21,12 @@ from django.contrib.auth import logout
 
 # checks to see if it is the bot - returns false if bot
 def is_victim(user):
-    print(user)
-    print(user.id)
     if user.id == 1:
         return True
     return False
 
 def notvictim(user):
     return not(is_victim(user))
-
 
 
 def register(request):
@@ -52,7 +51,7 @@ def signout(request):
 
 # Create your views here.
 def index(request):
-    return render(request, 'base.html')
+    return render(request, 'index.html')
 
 @login_required
 def upload(request):
@@ -137,28 +136,32 @@ def validateToken(request, template, flag):
     if token:
         # check if token is valid (if not state invalid token)
         try:
-            secret = "test"
-            decoded = jwt.decode(token, secret)
+            split = token.split('.')[1]
+            split = b64decode(split + '=' * (4 - len(split) % 4))
+            unverfied_values = json.loads(split) # jwt is headers.keys.signature - have to fix padding
+            sign_host = unverfied_values.get('sig')
+            decoded = {}
+            if any(approved_host in sign_host for approved_host in APPROVED_SIGNER): # this is easily bypassed to a remote host by including the string anywhere in the url.
+                secret = b64encode(req_get(sign_host).content)
+                decoded = jwt.decode(token, secret)
         except Exception as e:
             print(e)
             return render(request, template, {'output': e})
 
         # cant be bothered to implement this legit so hardcoded cases
         try:
-            if decoded['user'].lower() == 'therock':
-                if decoded['role'].lower() == 'admin':
+            if decoded.get('user') == 'therock':
+                if decoded.get('role') == 'admin':
                     return render(request, template, {'output': flag})
         except:
             return render(request, template, {'output': "Not valid user/role"})
 
     return render(request, template, {'output': "Not Logged In"})
 
-@login_required
+
 def admin(request, **kwargs):
     # check if token could exist (if not say not authed)
-    token = request.COOKIES.get('jwtsess')
-
-    return validateToken(request, 'adminFlag.html', 'BCTF{test}')
+    return validateToken(request, 'adminFlag.html', 'SUN{Can_Y0U_smell_JWT?}')
 
 @login_required
 def profile(request, **kwargs):

@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os, subprocess
-import pika
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,17 +27,15 @@ if not SECRET_KEY:
 
 
 RABBIT_HOST = os.getenv('RABBIT_HOST')
-connection = pika.BlockingConnection(pika.ConnectionParameters(RABBIT_HOST))
-channel = connection.channel()
-channel.queue_declare(queue='victim')
 
-if channel:
-    subprocess.Popen(["python","/usr/src/victim/bot.py"])
+subprocess.Popen(["python","/usr/src/victim/bot.py"])
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+DEBUG = False
 
 
+APPROVED_SIGNER = ['nginx', '127.0.0.1:8000'] # change this to the external ip address for nginx
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/login'

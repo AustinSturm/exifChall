@@ -23,7 +23,7 @@ class Victim(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.driver = webdriver.Remote(command_executor="{0}:{1}".format(PHANTOMJS_HOST, PHANTOMJS_PORT), desired_capabilities=DesiredCapabilities.PHANTOMJS)
-        self.flag = "SCTF{test}"
+        self.flag = "SUN{why_bo0ther_with_ex1f}"
 
 
     def auth(self):
@@ -47,8 +47,9 @@ class Victim(Thread):
     def visitImage(self, user_id, filename):
         try: # it always gives UnableToSetCookieException need to figure out why "errorMessage":"Unable to set Cookie""
             self.driver.add_cookie({"domain":NGINX_HOST, "name":"flag", "value":self.flag})
-        except:
-            pass
+            self.driver.add_cookie({"domain":NGINX_HOST, "name":"jwtsess", "value":"empty"})
+        except Exception as e:
+            print(e)
         self.driver.get(base_url+"bot/exif/{0}/{1}".format(user_id, filename))
         return 1
 
@@ -73,9 +74,7 @@ class Victim(Thread):
         connection = pika.BlockingConnection(pika.ConnectionParameters(RABBIT_HOST))
         channel = connection.channel()
         channel.queue_declare(queue='victim')
-        channel.basic_consume(self.callback,
-                              queue='victim',
-                              no_ack=True)
+        channel.basic_consume(self.callback, queue='victim', no_ack=True)
         channel.start_consuming()
 
 Victim().run()

@@ -2,12 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from uuid import uuid4
-from exif.settings import MEDIA_ROOT, channel
+from exif.settings import MEDIA_ROOT, RABBIT_HOST
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-import pickle
+import pickle, pika
 from base64 import b64encode
 
 
@@ -29,6 +29,9 @@ class images(models.Model):
 
 @receiver(post_save, sender=images)
 def victimVisit(sender, instance, **kwargs):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(RABBIT_HOST))
+    channel = connection.channel()
+    channel.queue_declare(queue='victim')
     channel.basic_publish(exchange='',
                       routing_key='victim',
                       body=b64encode(pickle.dumps({"user_id":instance.user_id, "filename":instance.ifile.name.split('/')[-1]})))
