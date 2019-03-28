@@ -60,6 +60,18 @@ docker-compose up
 ## Reset state
 docker-compose down -v
 
+## Troubleshoot
+
+If the web application/rabbitmq/database is not responding it is best to bring the whole thing down and back up as certain aspects rely to heavily on each other.
+
+If the bot stops issuing requests it can be restarted by killing the bot.py proccess and restarting it at /usr/src/victim/bot.py on the web container; otherwise a full reset will bring the bot back up.
+
+Still having issues? Have you tried resetting it?
+
+If you can't get the payload to execute on your end for testing consider if your browser supports the vulnerability. If it does and still having issues with the bot it could be due to your payload, some resources might be blocked or not rendered.
+
+For part 2, common issues: what resource they are signing from, encoding issues (the key is base64 of the given url's content), did they change the user/role?
+
 ## Solution
 
 exif image polyglot steals cookie ->
@@ -83,5 +95,5 @@ gets flag on static admin page
 
 ## Flags
  SUN{why_bo0ther_with_ex1f}
- 
+
  SUN{Can_Y0U_smell_JWT?}
